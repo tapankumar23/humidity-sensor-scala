@@ -4,6 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 class AggregationSpec extends AnyFlatSpec with should.Matchers {
+
   "A valid aggregation" should "be the same after combining with failed aggregation" in {
     val valid = ValidAggregation(2, 10, 12, 2)
     val combined = valid |+| FailedAggregation
@@ -27,4 +28,5 @@ class AggregationSpec extends AnyFlatSpec with should.Matchers {
     val combined = FailedAggregation |+| FailedAggregation
     combined should be(FailedAggregation)
   }
+
 }

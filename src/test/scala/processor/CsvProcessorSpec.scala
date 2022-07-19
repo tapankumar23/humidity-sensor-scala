@@ -1,6 +1,5 @@
 package processor
 
-//import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import model.{FailedAggregation, Result, ValidAggregation}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -9,13 +8,12 @@ import org.scalatest.matchers.should
 import java.io.IOException
 import scala.collection.immutable.HashMap
 import cats.effect.unsafe.implicits.global
-//import scala.concurrent.ExecutionContext
 
 class CsvProcessorSpec extends AnyFlatSpec with should.Matchers {
 
-  //implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-
-  private val directoryName = getClass.getResource("/valid").getPath
+  private val validDIR = getClass.getResource("/valid").getPath
+  private val inValidDIR = getClass.getResource("/invalid").getPath
+  private val emptyDIR = getClass.getResource("/empty").getPath
 
   val defaultResult: Result = Result(
     HashMap(
@@ -34,8 +32,8 @@ class CsvProcessorSpec extends AnyFlatSpec with should.Matchers {
     val processor: CsvProcessor = CsvProcessor("SequentialProcessor".some)
   }
 
-  "Output of default test" should "be as specified in task.md including string representation" in new Processor {
-    private val result = processor.execute(directoryName).unsafeRunSync()
+  "Output of valid test" should "be as specified in task.md including string representation" in new Processor {
+    private val result = processor.execute(validDIR).unsafeRunSync()
     result should be(defaultResult)
 
     private def fixNewLine(s: String) = s.replaceAll("\\r\\n|\\r|\\n", "\\n")
@@ -57,7 +55,7 @@ class CsvProcessorSpec extends AnyFlatSpec with should.Matchers {
   it should "be the same for each processor type" in new Processor {
     types.foreach(typeName => {
       val anotherProcessor = CsvProcessor(typeName.some)
-      val anotherResult = anotherProcessor.execute(directoryName).unsafeRunSync()
+      val anotherResult = anotherProcessor.execute(validDIR).unsafeRunSync()
       anotherResult should be(defaultResult)
     })
   }
@@ -70,17 +68,14 @@ class CsvProcessorSpec extends AnyFlatSpec with should.Matchers {
 
   it should "throw IOException for an invalid path" in new Processor {
     assertThrows[IOException] {
-      val directoryName = getClass.getResource("/invalid").getPath
-      processor.execute(directoryName).unsafeRunSync()
+      processor.execute(inValidDIR).unsafeRunSync()
     }
   }
 
   "Output data" should "be empty" in {
-    val directoryName = getClass.getResource("/empty").getPath
-
     types.foreach(typeName => {
       val anotherProcessor = CsvProcessor(typeName.some)
-      val result = anotherProcessor.execute(directoryName).unsafeRunSync()
+      val result = anotherProcessor.execute(emptyDIR).unsafeRunSync()
       result should be(Result())
     })
   }
